@@ -1,0 +1,23 @@
+name: ham-softmax
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch=2.7.1
+  - torchaudio=2.7.1
+  - numpy=2.2.6
+  - scipy=1.15.3
+  - scikit-learn=1.7.2
+  - pandas=2.3.3
+  - libsndfile
+  - pip
+  - pip:
+      - soundfile==0.14.0
+      - tqdm==4.68.3
+      - requests==2.34.2
+
+# Local reference environment: Windows, Python 3.10.20,
+# torch/torchaudio 2.7.1+cu118. On Linux, select a PyTorch CUDA build that
+# matches the installed NVIDIA driver instead of copying a Windows package.

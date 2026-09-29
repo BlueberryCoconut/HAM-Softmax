@@ -2,6 +2,8 @@
 
 ## What to transfer
 
+The authoritative source snapshot is the Git branch `research/server-handoff-20260929`. Verify the commit and list hashes against `RESEARCH_PROGRESS.md` after transfer.
+
 Transfer the working-tree code and small configuration/list files, including:
 
 - `AGENTS.md`
@@ -13,8 +15,11 @@ Transfer the working-tree code and small configuration/list files, including:
 - `data/v1_clean.txt`
 - the relevant launch scripts as historical argument references
 - for asym02 continuation, the experiment log plus `model_0052.model` and enough adjacent checkpoint metadata to validate it
+- `environment.yml` and `server_audit.sh`
 
 Do not blindly upload the local VoxCeleb1 or augmentation archives. Prefer the server's existing datasets after verifying their paths and contents.
+
+Run `bash server_audit.sh` from the repository root for the first read-only server inventory. It does not launch or stop training.
 
 ## First instruction for server Codex
 

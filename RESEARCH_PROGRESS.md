@@ -7,9 +7,11 @@ This file records evidence for handoff. Live server state always takes precedenc
 ## Repository state
 
 - Repository: `D:\新大语音科研\HAM-Softmax`
-- Base commit: `7060764` (`update`), branch `main` tracking `origin/main`.
-- The worktree is intentionally dirty. Existing modifications include `datasets.py`, `main.py`, and `utils.py`, plus untracked ES-GMM code, launchers, data lists, logs, and utilities.
-- Do not use destructive Git cleanup or overwrite these files. The server handoff must include the working-tree versions, not only the upstream commit.
+- Upstream base commit: `7060764` (`update`).
+- Research branch: `research/server-handoff-20260929`.
+- Code commit: `53ad92a` (`research: add reproducible noisy-label experiments`).
+- Documentation commit before this audit: `4419e1d` (`docs: record experiment state and server handoff`).
+- Generated logs, datasets, and checkpoints are intentionally excluded from Git. Their provenance is recorded separately.
 
 ## Dataset and local environment
 
@@ -77,6 +79,17 @@ Common intended arguments from `run_vox1k_aam_esgmm.ps1`:
 - Latest recorded periodic metric at Epoch 50: ACC 93.613, EER 3.409, minDCF 0.254, bestEER 3.286.
 - Historical stdout for a run with an asym02 postfix printed `train_list: data/v1_clean.txt`. This is a blocking configuration discrepancy: inspect `run_vox1k_aam_esgmm.ps1`, the actual list files, `main_es_gmm.py`, and any resume command before continuing.
 - If the configuration is validated and the experiment directory is transferred intact, current `main_es_gmm.py` should discover `model_0052.model` and begin at Epoch 53. Verify this behavior in a short controlled launch before leaving a long-running job unattended.
+
+## 2026-09-29 reproducibility audit
+
+- All three training lists contain 148,642 unique utterance paths.
+- SHA-256 `data/v1_clean.txt`: `76848a940adab63102ccb7da1a9a60ef1db9ddec1102809db66ddff8e200337d`.
+- SHA-256 `data/vox1k_sym_0.3.txt`: `ed29f270ca9c888dabfe5c417de33f10fed92266278ce9658471626ebdcef0dc`.
+- SHA-256 `data/vox1k_asym_0.2.txt`: `312cb9372374f9f33ef69b0a1b4ee2ff700c7cd58300440e754959c393f4866a`.
+- Compared by utterance path with `v1_clean.txt`, the symmetric list changes 62,071 labels (41.7587%) and the asymmetric list changes 49,582 labels (33.3567%). These observed rates do not match the `0.3` and `0.2` filenames, so the noise-list generation procedure or naming must be recovered before publication or a scientifically clean continuation.
+- The asym02 `train.log` explicitly records `train_list=data\\vox1k_asym_0.2.txt` at the initial 2026-09-24 training start. The later stdout showing `data/v1_clean.txt` came from a separate invocation that reused the same experiment directory. This explains the conflicting headers but does not resolve the unexpected label-change rate.
+- Latest complete asym02 checkpoint: `model_0052.model`, 63,588,285 bytes, SHA-256 `9dac64c2c6c810039c9e2139f78d827be4dbd6023f2d2a9731abdf8d7c74a7ac`.
+- Decision: package and audit may proceed, but long-running asym02 continuation is blocked until the noise-list provenance is resolved or the run is explicitly classified as using these exact hashed lists rather than nominal 20% noise.
 
 ## Server snapshot supplied by the user
 
