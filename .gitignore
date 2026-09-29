@@ -8,3 +8,6 @@ logs/
 *.pt
 *.pth
 .env
+.vscode/
+pause_training.ps1
+resume_training.ps1

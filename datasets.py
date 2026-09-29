@@ -22,8 +22,9 @@ class BaseDataset(Dataset):
 
         self.augment = augment
         if self.augment:
-            self.musan_path = "/home/database/noise/musan"
-            self.rir_path = "/home/database/noise/RIRS_NOISES/simulated_rirs"
+            augmentation_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'augmentation_data'))
+            self.musan_path = os.path.join(augmentation_root, 'musan')
+            self.rir_path = os.path.join(augmentation_root, 'RIRS_NOISES', 'simulated_rirs')
             self.noisetypes = ['noise','speech','music']
             self.noisesnr = {'noise':[0,15],'speech':[13,20],'music':[5,15]}
             self.numnoise = {'noise':[1,1], 'speech':[3,8], 'music':[1,1]}
@@ -31,10 +32,17 @@ class BaseDataset(Dataset):
             
             augment_files   = glob.glob(os.path.join(self.musan_path,'*/*/*.wav'))
             for file in augment_files:
-                if file.split('/')[-3] not in self.noiselist:
-                    self.noiselist[file.split('/')[-3]] = []
-                self.noiselist[file.split('/')[-3]].append(file)
+                noise_type = os.path.basename(os.path.dirname(os.path.dirname(file)))
+                if noise_type not in self.noiselist:
+                    self.noiselist[noise_type] = []
+                self.noiselist[noise_type].append(file)
             self.rir_files  = glob.glob(os.path.join(self.rir_path,'*/*/*.wav'))
+            missing_noise_types = [key for key in self.noisetypes if not self.noiselist.get(key)]
+            if missing_noise_types or not self.rir_files:
+                raise FileNotFoundError(
+                    f"Augmentation data is incomplete: missing MUSAN categories {missing_noise_types}, "
+                    f"RIR files found {len(self.rir_files)}. Expected data under {augmentation_root}"
+                )
             for key in self.noiselist.keys():
                 print(f"{key}: {len(self.noiselist[key])}")
 
@@ -144,7 +152,12 @@ class Evaluator(object):
         setfiles.sort()
 
         for idx, file in tqdm(enumerate(setfiles), desc='test', total=len(setfiles), ncols=100):
-            audio, _ = soundfile.read(os.path.join(self.eval_path, file))
+            # VoxCeleb-O lists use paths beginning with ``test/`` while the
+            # downloaded test archive is rooted directly at ``wav/``.
+            local_file = file.replace('\\', '/')
+            if local_file.startswith('test/'):
+                local_file = local_file[len('test/'):]
+            audio, _ = soundfile.read(os.path.join(self.eval_path, local_file))
             data_1 = torch.FloatTensor(numpy.stack([audio], axis=0)).cuda()
 
             max_audio = 300 * 160 + 240

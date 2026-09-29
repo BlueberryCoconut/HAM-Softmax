@@ -42,25 +42,36 @@ def init_args(args, method='ham'):
     args.save_path = get_save_path(args, method)
     print("save path:", args.save_path)
 
+    experiment_name = os.path.basename(os.path.normpath(args.save_path))
     args.log_path = os.path.join(args.save_path, 'train.log')
-    args.score_save_path = os.path.join(args.save_path, 'result_{}.csv'.format(args.save_path.split('/')[-1]))
-    args.log_file = os.path.join(args.save_path, '{}.log'.format(args.save_path.split('/')[-1]))
+    args.score_save_path = os.path.join(args.save_path, f'result_{experiment_name}.csv')
+    args.log_file = os.path.join(args.save_path, f'{experiment_name}.log')
     args.model_save_path = os.path.join(args.save_path, 'model')
     os.makedirs(args.model_save_path, exist_ok=True)
     if  args.dataset == 'v1':
-        args.test_step = 10
-        args.max_epoch = 150
+        if args.test_step is None:
+            args.test_step = 10
+        if args.max_epoch is None:
+            args.max_epoch = 150
     elif args.dataset == 'v2':
-        args.test_step = 5
-        args.max_epoch = 100
+        if args.test_step is None:
+            args.test_step = 5
+        if args.max_epoch is None:
+            args.max_epoch = 100
     elif args.dataset == 'cn':
-        args.test_step = 5
-        args.max_epoch = 100
+        if args.test_step is None:
+            args.test_step = 5
+        if args.max_epoch is None:
+            args.max_epoch = 100
     else:
         print(f"Unsupport dataset: {args.dataset}!")
         exit()
     
-    args.train_list, args.train_path = get_data_path(args.dataset)
+    default_train_list, args.train_path = get_data_path(args.dataset)
+    if args.train_list is None:
+        args.train_list = default_train_list
+    else:
+        print('train_list override:', args.train_list)
     
     return args
 
@@ -94,9 +105,13 @@ def get_scheduler(optimizer, lr_decay):
 
 
 def get_data_path(dataset):
-    vox1_dev_path = '/home/fangzh21/data/voxceleb/voxceleb1/dev/wav/'
-    vox2_dev_path = '/home/fangzh21/data/voxceleb/voxceleb2/dev/aac/'
-    cn_dev_path = '/home/fangzh21/data/cnceleb'
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    vox1_root = os.environ.get(
+        'VOXCELEB1_ROOT', os.path.join(workspace_root, 'voxceleb1')
+    )
+    vox1_dev_path = os.path.join(vox1_root, 'vox1_dev_wav', 'wav')
+    vox2_dev_path = os.environ.get('VOXCELEB2_DEV_PATH', '')
+    cn_dev_path = os.environ.get('CNCELEB_DEV_PATH', '')
 
     if 'v1' == dataset:
         train_path = vox1_dev_path
@@ -116,7 +131,11 @@ def get_evaluator(dataset):
 
     if 'v1' in dataset or 'v2' in dataset:
         eval_list = 'data/vox_O.txt'
-        eval_path = "/home/fangzh21/data/voxceleb/voxceleb1"
+        workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        vox1_root = os.environ.get(
+            'VOXCELEB1_ROOT', os.path.join(workspace_root, 'voxceleb1')
+        )
+        eval_path = os.path.join(vox1_root, 'vox1_test_wav')
     elif 'cn' in dataset:
         eval_list = 'data/CN.Eval_list.txt'
         eval_list1 = '/home/fangzh21/data/cn_file/cn_veri_test.txt'

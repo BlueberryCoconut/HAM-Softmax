@@ -4,6 +4,8 @@ import time
 import glob
 import warnings
 import datetime
+import random
+import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 # import torch.multiprocessing as mp
@@ -22,7 +24,8 @@ parser = argparse.ArgumentParser(description="ECAPA_trainer")
 parser.add_argument("--save_root",  type=str,   default=save_root)
 ## Training Settings
 parser.add_argument('--num_frames', type=int,   default=200)
-parser.add_argument('--max_epoch',  type=int,   default=80)
+parser.add_argument('--max_epoch',  type=int,   default=None)
+parser.add_argument('--test_step',  type=int,   default=None)
 parser.add_argument('--batch_size', type=int,   default=64)
 parser.add_argument('--n_cpu',      type=int,   default=16)
 parser.add_argument('--lr',         type=float, default=0.001)
@@ -31,6 +34,8 @@ parser.add_argument("--loss_type",  type=str,   default='am')
 parser.add_argument("--lambda_1",   type=float, default=1)
 parser.add_argument("--lambda_2",   type=float, default=1)
 parser.add_argument("--dataset",    type=str,   default='v1')
+parser.add_argument('--train_list', type=str,   default=None,
+                    help='Override the training list selected by --dataset')
 parser.add_argument('--augment',    dest='augment', action='store_true')
 ## Model and Loss settings
 parser.add_argument('--C', type=int, default=1024)
@@ -41,6 +46,8 @@ parser.add_argument('--s', type=float, default=30)
 parser.add_argument('--h_C', type=float, default=1)
 parser.add_argument('--h_m', type=float, default=0.2)
 parser.add_argument('--h_s', type=int, default=30)
+parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--postfix', type=str, default=None)
 
 ## Command
 parser.add_argument('--eval', dest='eval', action='store_true')
@@ -50,7 +57,10 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 ## Initialization
 args = parser.parse_args()
-args.postfix = None # f'_m={args.m}_s={args.s}'
+random.seed(args.seed)
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+torch.cuda.manual_seed_all(args.seed)
 args = init_args(args)
 
 logger = Logger(args.log_path)
@@ -220,7 +230,15 @@ def main(args):
 
     # 加载final模型
     final_model_path = os.path.join(args.model_save_path, "model_final.model")
-    if os.path.exists(final_model_path):
+    latest_epoch_model = os.path.join(
+        args.model_save_path, "model_%04d.model" % args.max_epoch
+    )
+    final_is_current = (
+        os.path.exists(final_model_path)
+        and os.path.exists(latest_epoch_model)
+        and os.path.getmtime(final_model_path) >= os.path.getmtime(latest_epoch_model)
+    )
+    if final_is_current:
         ensemble_model = Model(**vars(args))
         ensemble_model.load_parameters(final_model_path)
         logger.print(f"{final_model_path} is loaded!")
