@@ -1,13 +1,53 @@
 <div align="center">
 
-# HAM-Softmax: Hyperbolic Additive Margin Softmax with Hierarchical Information for Speaker Verification
+# HAM-Softmax + DS³
 
-[![IEEE Xplore](https://img.shields.io/badge/IEEE%20Xplore-11463316-00629B?style=for-the-badge&logo=ieee&logoColor=white)](https://ieeexplore.ieee.org/abstract/document/11463316)
-[![arXiv](https://img.shields.io/badge/arXiv-2601.19709-b31b1b.svg?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2601.19709)
+## Robust Speaker Verification with Hyperbolic Margins and Dual-Space Sample Selection
 
-Official implementation of **Hyperbolic Additive Margin Softmax with Hierarchical Information for Speaker Verification**, accepted by **ICASSP 2026**.
+[![HAM-Softmax](https://img.shields.io/badge/HAM--Softmax-ICASSP%202026-00629B?style=for-the-badge)](https://ieeexplore.ieee.org/abstract/document/11463316)
+[![DS3](https://img.shields.io/badge/DS%C2%B3-Pattern%20Recognition-4C8BF5?style=for-the-badge)](https://doi.org/10.1016/j.patcog.2026.113595)
+
+Research repository for integrating **HAM-Softmax** with **DS³ (Dual-Space Sample Selection)** to improve speaker representation learning under noisy labels.
 
 </div>
+
+## Research Objective
+
+This project investigates whether the hierarchical hyperbolic decision geometry of HAM-Softmax can be combined with the noisy-label handling strategy of DS³. The intended system will use:
+
+- **HAM-Softmax** as the speaker-classification objective;
+- **feature-space selection** with multiple centres per speaker;
+- **output-space Top2-Margin** analysis for separating in-distribution and out-of-distribution label noise;
+- a **multi-stage training procedure** for sample selection and label correction.
+
+The primary evaluation setting is speaker verification on VoxCeleb under clean, symmetric-noise, and asymmetric-noise conditions. Results must be reported with exact list-file hashes, seeds, checkpoints, EER, and minDCF.
+
+## Current Status
+
+| Component | Status |
+| --- | --- |
+| Original HAM-Softmax baseline | Available from the upstream implementation |
+| Portable VoxCeleb1 training and evaluation | Available |
+| Controlled noisy-label list experiments | Available; exact list hashes are recorded |
+| ES-GMM noisy-sample baseline | Available in `main_es_gmm.py` |
+| DS³ multi-centre feature-space selection | Not yet implemented |
+| DS³ Top2-Margin output-space selection | Not yet implemented |
+| Full HAM-Softmax + DS³ multi-stage training | Research integration in progress |
+
+See [RESEARCH_PROGRESS.md](RESEARCH_PROGRESS.md) for verified results, known data issues, checkpoint provenance, and the current handoff state. In particular, the observed label-change rates of the existing noisy lists do not match their nominal filenames; do not treat those names alone as experimental ground truth.
+
+## Upstream Project and Attribution
+
+This repository is a research fork of [PunkMale/HAM-Softmax](https://github.com/PunkMale/HAM-Softmax). The original HAM-Softmax implementation and its README were authored by Zhihua Fang and collaborators. The research-fork changes add portability, noisy-label experiments, ES-GMM baselines, reproducibility records, and the planned HAM-Softmax + DS³ integration.
+
+Original HAM-Softmax resources:
+
+- [IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/11463316)
+- [arXiv](https://arxiv.org/abs/2601.19709)
+
+DS³ reference:
+
+- Zhihua Fang and Liang He, “DS³: Dual-space sample selection for speaker representation learning with noisy labels,” *Pattern Recognition*, 2026, DOI: [10.1016/j.patcog.2026.113595](https://doi.org/10.1016/j.patcog.2026.113595).
 
 
 ## Data Preparation
